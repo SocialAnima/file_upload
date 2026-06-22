@@ -46,16 +46,26 @@ sudo systemctl enable "$SERVICE_NAME"
 sudo systemctl restart "$SERVICE_NAME"
 
 echo "==> 配置 Nginx"
-NGINX_SNIPPET="/etc/nginx/conf.d/file_upload.conf"
-sudo cp "$APP_DIR/deploy/nginx-file_upload.conf" "$NGINX_SNIPPET"
+sudo mkdir -p /etc/nginx/snippets
+sudo cp "$APP_DIR/deploy/nginx-location.conf" /etc/nginx/snippets/file_upload_location.conf
 
-if ! grep -q "include /etc/nginx/conf.d/file_upload.conf;" /etc/nginx/nginx.conf 2>/dev/null; then
-    echo "请在现有 server 块中加入: include /etc/nginx/conf.d/file_upload.conf;"
-    echo "或直接粘贴 deploy/nginx-file_upload.conf 到对应 server 配置中"
+# 清理旧版错误配置（location 不能直接放在 conf.d 顶层）
+if [ -f /etc/nginx/conf.d/file_upload.conf ]; then
+    sudo rm /etc/nginx/conf.d/file_upload.conf
 fi
 
-sudo nginx -t
-sudo systemctl reload nginx
+DEFAULT_SITE="/etc/nginx/sites-enabled/default"
+if [ -f "$DEFAULT_SITE" ] && ! grep -q "file_upload_location.conf" "$DEFAULT_SITE"; then
+    echo ""
+    echo "Nginx 片段已安装到 /etc/nginx/snippets/file_upload_location.conf"
+    echo "请编辑 $DEFAULT_SITE，在 server { ... } 内加入："
+    echo "    include snippets/file_upload_location.conf;"
+    echo ""
+    echo "然后执行: sudo nginx -t && sudo systemctl reload nginx"
+else
+    sudo nginx -t
+    sudo systemctl reload nginx
+fi
 
 echo "==> 部署完成"
 echo "访问地址: http://106.54.199.248/file_upload"

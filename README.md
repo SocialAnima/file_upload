@@ -75,15 +75,52 @@ sudo bash deploy/deploy.sh
 
 ### 3. Nginx 配置
 
-将 [deploy/nginx-file_upload.conf](deploy/nginx-file_upload.conf) 内容加入现有 `server` 块，例如：
+`location` 必须写在 `server { }` 内部，**不能**直接放到 `/etc/nginx/conf.d/`。
+
+**第一步：删除错误配置（若已创建）**
+
+```bash
+sudo rm -f /etc/nginx/conf.d/file_upload.conf
+```
+
+**第二步：安装 location 片段**
+
+```bash
+sudo mkdir -p /etc/nginx/snippets
+sudo cp deploy/nginx-location.conf /etc/nginx/snippets/file_upload_location.conf
+```
+
+**第三步：编辑默认站点，在 `server { }` 内加入 include**
+
+```bash
+sudo vim /etc/nginx/sites-enabled/default
+```
+
+在 `server { ... }` 块内添加：
+
+```nginx
+include snippets/file_upload_location.conf;
+```
+
+完整示例：
 
 ```nginx
 server {
-    listen 80;
-    server_name 106.54.199.248;
+    listen 80 default_server;
+    listen [::]:80 default_server;
+    server_name _;
 
-    include /etc/nginx/conf.d/file_upload.conf;
+    include snippets/file_upload_location.conf;
+
+    # ... 其他已有配置 ...
 }
+```
+
+**第四步：测试并重载**
+
+```bash
+sudo nginx -t
+sudo systemctl reload nginx
 ```
 
 关键配置：
