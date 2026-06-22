@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}资源下载中心{% endblock %}
+
+{% block content %}
+<div class="page">
+    <header class="header">
+        <div>
+            <h1>资源下载中心</h1>
+            <p class="subtitle">浏览并下载可用资源文件</p>
+        </div>
+        <button id="adminToggleBtn" class="btn btn-secondary" type="button">管理</button>
+    </header>
+
+    <section id="adminPanel" class="admin-panel hidden">
+        <div class="admin-panel-header">
+            <h2>管理模式</h2>
+            <button id="logoutBtn" class="btn btn-text" type="button">退出管理</button>
+        </div>
+
+        <div class="upload-zone" id="uploadZone">
+            <input id="fileInput" type="file" hidden>
+            <p>点击或拖拽文件到此处上传</p>
+            <p class="hint">单文件最大 {{ max_upload_mb }}MB</p>
+            <button id="selectFileBtn" class="btn btn-primary" type="button">选择文件</button>
+        </div>
+
+        <div id="uploadStatus" class="status-message hidden"></div>
+
+        <form id="changePasswordForm" class="password-form">
+            <h3>修改管理密码</h3>
+            <label>
+                原密码
+                <input id="oldPassword" type="password" required autocomplete="current-password">
+            </label>
+            <label>
+                新密码
+                <input id="newPassword" type="password" required autocomplete="new-password" minlength="4">
+            </label>
+            <button class="btn btn-primary" type="submit">保存新密码</button>
+            <div id="passwordStatus" class="status-message hidden"></div>
+        </form>
+    </section>
+
+    <section class="file-section">
+        <div class="section-header">
+            <h2>文件列表</h2>
+            <span id="fileCount" class="badge">{{ files|length }} 个文件</span>
+        </div>
+
+        {% if files %}
+        <div class="table-wrap">
+            <table class="file-table">
+                <thead>
+                    <tr>
+                        <th>文件名</th>
+                        <th>大小</th>
+                        <th>上传时间</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="fileTableBody">
+                    {% for file in files %}
+                    <tr data-id="{{ file.id }}">
+                        <td class="file-name">{{ file.original_name }}</td>
+                        <td class="file-size" data-size="{{ file.size }}">{{ file.size }}</td>
+                        <td class="file-time">{{ file.uploaded_at }}</td>
+                        <td class="actions">
+                            <a class="btn btn-link" href="{{ base_path }}/download/{{ file.id }}">下载</a>
+                            <button class="btn btn-danger delete-btn hidden" type="button" data-id="{{ file.id }}">删除</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div id="emptyState" class="empty-state">暂无文件，管理员登录后可上传资源。</div>
+        {% endif %}
+    </section>
+</div>
+
+<div id="loginModal" class="modal hidden">
+    <div class="modal-backdrop" id="loginBackdrop"></div>
+    <div class="modal-content">
+        <h2>进入管理模式</h2>
+        <p>请输入管理密码</p>
+        <form id="loginForm">
+            <input id="loginPassword" type="password" placeholder="管理密码" required autocomplete="current-password">
+            <div id="loginError" class="status-message error hidden"></div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" type="button" id="cancelLoginBtn">取消</button>
+                <button class="btn btn-primary" type="submit">确认</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ base_path }}/static/js/main.js"></script>
+{% endblock %}
