@@ -58,6 +58,13 @@ chmod +x deploy/deploy.sh
 sudo ./deploy/deploy.sh
 ```
 
+若出现 `/usr/bin/env: 'bash\r': No such file or directory`，说明脚本被 Windows 换行符污染，在服务器上执行：
+
+```bash
+sed -i 's/\r$//' deploy/deploy.sh
+sudo bash deploy/deploy.sh
+```
+
 脚本会完成：
 
 - 安装 Python 依赖
